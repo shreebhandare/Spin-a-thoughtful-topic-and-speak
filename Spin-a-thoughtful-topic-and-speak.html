@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OnTheSpot · Speaking Practice</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="https://langrushi.com/wp-content/uploads/2024/05/favicon.ico" />
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Ethiopic:wdth,wght@75,300;75,400;75,600;75,700;75,900&family=Noto+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet" />
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { height:100%; }
+        body {
+            background:#f8fafc;
+            color:#0A1F44;
+            font-family:'Noto Sans','Segoe UI',system-ui,sans-serif;
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:1rem;
+            overflow-x:hidden;
+        }
+        .container {
+            max-width:640px;
+            width:100%;
+            background:#ffffff;
+            padding:clamp(1rem,2.5vw,1.6rem) clamp(0.9rem,2.5vw,1.5rem);
+            border-radius:clamp(1.1rem,2.5vw,1.8rem);
+            box-shadow:0 20px 60px rgba(10,31,68,0.12);
+            text-align:center;
+            border:1px solid #e9edf4;
+        }
+
+        /* HEADER: logo stacked above heading */
+        .header {
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:0.5rem;
+            margin-bottom:0.25rem;
+        }
+        .logo-img { height:clamp(28px,5vw,42px); width:auto; display:block; }
+        h1 {
+            font-family:'Noto Serif Ethiopic','Georgia',serif;
+            font-weight:700;
+            font-size:clamp(1.1rem,3.4vw,1.7rem);
+            letter-spacing:-0.5px;
+            color:#0A1F44;
+            margin:0;
+            line-height:1.15;
+        }
+        h1 span.dark { color:#0A1F44; }
+        h1 span.accent-red { color:#FF0000; }
+        .subhead {
+            color:#4a5b7a;
+            font-size:0.75rem;
+            margin-bottom:clamp(0.6rem,2vw,1.1rem);
+            border-bottom:1px solid #e9edf4;
+            padding-bottom:0.5rem;
+            font-weight:300;
+        }
+
+        /* MODE PILLS */
+        .category-group {
+            display:flex;
+            flex-wrap:wrap;
+            gap:0.4rem;
+            justify-content:center;
+            margin-bottom:clamp(0.6rem,2vw,1.1rem);
+            transition:opacity .2s, max-height .2s;
+        }
+        .cat-btn {
+            background:#f1f4f9;
+            border:1px solid transparent;
+            color:#0A1F44;
+            padding:0.35rem 1rem;
+            border-radius:100px;
+            font-size:0.8rem;
+            font-weight:500;
+            cursor:pointer;
+            transition:0.2s;
+            font-family:'Noto Sans',sans-serif;
+        }
+        .cat-btn:hover { background:#e2e8f0; }
+        .cat-btn.active {
+            background:#FF0000;
+            color:#ffffff;
+            border-color:#FF0000;
+            box-shadow:0 0 20px rgba(255,0,0,0.20);
+        }
+
+        /* TOPIC CARD */
+        .topic-card {
+            background:#f8fafc;
+            border-radius:1.3rem;
+            padding:clamp(1rem,3vw,1.8rem) 1rem;
+            margin-bottom:clamp(0.6rem,2vw,1.1rem);
+            min-height:clamp(130px,22vw,190px);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border:1px dashed #d0d8e4;
+            transition:box-shadow 0.1s, border-color 0.1s, background 0.1s;
+            position:relative;
+            overflow:hidden;
+        }
+        .topic-card.spinning-active {
+            border-color:#FF0000;
+            box-shadow:0 0 35px rgba(255,0,0,0.15);
+            background:#ffffff;
+        }
+        .topic-text {
+            font-family:'Noto Serif Ethiopic','Georgia',serif;
+            font-size:clamp(1rem,3.2vw,1.7rem);
+            font-weight:700;
+            line-height:1.3;
+            color:#0A1F44;
+            transition:color 0.08s;
+        }
+        .topic-text.placeholder {
+            color:#8a9bb8;
+            font-style:italic;
+            font-weight:400;
+            font-family:'Noto Sans',sans-serif;
+            font-size:0.9rem;
+        }
+        .topic-text.spinning-active { color:#FF0000; }
+        .topic-text.final-reveal { animation:pop 0.25s ease; }
+        @keyframes pop {
+            0% { transform:scale(0.92); opacity:0.6; }
+            100% { transform:scale(1); opacity:1; }
+        }
+
+        /* Hidden state for pills + topic card while countdown runs */
+        .hidden-block { display:none !important; }
+
+        /* CIRCULAR COUNTDOWN */
+        .countdown-wrap {
+            display:none;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            margin-bottom:clamp(0.6rem,2vw,1.1rem);
+            gap:clamp(0.5rem,1.5vw,0.9rem);
+        }
+        .countdown-wrap.active { display:flex; }
+
+        .circle-timer {
+            position:relative;
+            width:clamp(140px,32vmin,210px);
+            height:clamp(140px,32vmin,210px);
+        }
+        .circle-timer svg { transform:rotate(-90deg); width:100%; height:100%; }
+        .circle-bg {
+            fill:none;
+            stroke:#f1f4f9;
+            stroke-width:12;
+        }
+        .circle-progress {
+            fill:none;
+            stroke:#0A1F44;
+            stroke-width:12;
+            stroke-linecap:round;
+            transition:stroke-dashoffset 1s linear, stroke 1s linear;
+        }
+
+        .circle-label {
+            position:absolute;
+            top:0; left:0; right:0; bottom:0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-family:'Noto Sans',monospace;
+            font-size:clamp(1.5rem,6vmin,2.4rem);
+            font-weight:600;
+            font-variant-numeric:tabular-nums;
+            letter-spacing:1px;
+            color:#0A1F44;
+        }
+        .circle-label.blink-urgent { animation:blinkUrgent 0.5s infinite; }
+        @keyframes blinkUrgent {
+            0%, 49% { color:#0A1F44; }
+            50%, 100% { color:#FF0000; }
+        }
+
+        .countdown-topic {
+            font-family:'Noto Serif Ethiopic','Georgia',serif;
+            font-weight:700;
+            font-size:clamp(1rem,3vw,1.3rem);
+            line-height:1.4;
+            color:#0A1F44;
+            max-width:480px;
+        }
+
+        .countdown-mode-label {
+            font-size:0.8rem;
+            letter-spacing:0.08em;
+            text-transform:uppercase;
+            color:#8a9bb8;
+            font-weight:600;
+        }
+
+        .btn-cancel {
+            background:#fee2e2;
+            border:1px solid #fecaca;
+            color:#b91c1c;
+            padding:0.55rem 1.8rem;
+            border-radius:100px;
+            font-size:0.85rem;
+            font-weight:600;
+            cursor:pointer;
+            transition:0.2s;
+            font-family:'Noto Sans',sans-serif;
+        }
+        .btn-cancel:hover { background:#fecaca; }
+        .btn-cancel.close-state {
+            background:#0A1F44;
+            border-color:#0A1F44;
+            color:#ffffff;
+        }
+        .btn-cancel.close-state:hover { background:#132a5c; }
+
+        /* MAIN ACTIONS */
+        .action-group {
+            display:flex;
+            flex-wrap:wrap;
+            gap:0.6rem;
+            justify-content:center;
+            align-items:center;
+        }
+        .btn-primary {
+            background:#FF0000;
+            border:none;
+            color:#ffffff;
+            padding:0.65rem clamp(1.2rem,4vw,2.4rem);
+            border-radius:100px;
+            font-size:0.9rem;
+            font-weight:600;
+            cursor:pointer;
+            transition:0.2s;
+            box-shadow:0 8px 24px rgba(255,0,0,0.25);
+            flex:1 0 auto;
+            font-family:'Noto Sans',sans-serif;
+        }
+        .btn-primary:hover { background:#cc0000; transform:scale(1.02); box-shadow:0 8px 32px rgba(255,0,0,0.35); }
+        .btn-primary:active { transform:scale(0.96); }
+
+        .btn-secondary {
+            background:#f1f4f9;
+            border:1px solid #d0d8e4;
+            color:#0A1F44;
+            padding:0.65rem clamp(1.2rem,4vw,2.4rem);
+            border-radius:100px;
+            font-size:0.9rem;
+            font-weight:600;
+            cursor:pointer;
+            transition:0.2s;
+            flex:1 0 auto;
+            font-family:'Noto Sans',sans-serif;
+        }
+        .btn-secondary:hover { background:#e2e8f0; }
+
+        .btn-icon {
+            background:#f1f4f9;
+            border:1px solid #d0d8e4;
+            color:#0A1F44;
+            width:38px;
+            height:38px;
+            border-radius:100px;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:0.2s;
+            flex:0 0 auto;
+        }
+        .btn-icon:hover { background:#e2e8f0; }
+        .btn-icon svg { width:17px; height:17px; }
+
+        /* FOOTER */
+        .footer-note {
+            margin-top:clamp(0.6rem,2vw,1.1rem);
+            font-size:0.68rem;
+            color:#8a9bb8;
+            border-top:1px solid #e9edf4;
+            padding-top:0.6rem;
+            font-family:'Noto Sans',sans-serif;
+        }
+        .footer-note a { color:#FF0000; text-decoration:none; }
+
+        /* SETTINGS MODAL */
+        .modal-overlay {
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(10,31,68,0.55);
+            align-items:center;
+            justify-content:center;
+            padding:1.5rem;
+            z-index:100;
+        }
+        .modal-overlay.open { display:flex; }
+        .modal-box {
+            background:#ffffff;
+            border-radius:1.5rem;
+            max-width:480px;
+            width:100%;
+            max-height:85vh;
+            overflow-y:auto;
+            padding:clamp(1.4rem,4vw,2.2rem) clamp(1.2rem,4vw,2rem);
+            text-align:left;
+            box-shadow:0 30px 80px rgba(10,31,68,0.35);
+        }
+        .modal-box h2 {
+            font-family:'Noto Serif Ethiopic','Georgia',serif;
+            font-size:1.8rem;
+            color:#0A1F44;
+            margin-bottom:0.4rem;
+        }
+        .modal-sub {
+            color:#8a9bb8;
+            font-size:0.9rem;
+            margin-bottom:1.6rem;
+        }
+        .setting-row { margin-bottom:1.6rem; }
+        .setting-row-top {
+            display:flex;
+            justify-content:space-between;
+            align-items:baseline;
+            margin-bottom:0.6rem;
+        }
+        .setting-label {
+            font-size:0.78rem;
+            letter-spacing:0.08em;
+            text-transform:uppercase;
+            font-weight:700;
+            color:#FF0000;
+        }
+        .setting-value {
+            font-family:'Noto Serif Ethiopic','Georgia',serif;
+            font-weight:700;
+            font-size:1.1rem;
+            color:#0A1F44;
+        }
+        input[type="range"] {
+            width:100%;
+            accent-color:#FF0000;
+            height:6px;
+            cursor:pointer;
+        }
+        .range-minmax {
+            display:flex;
+            justify-content:space-between;
+            font-size:0.78rem;
+            color:#8a9bb8;
+            margin-top:0.3rem;
+        }
+        .setting-helper {
+            font-size:0.78rem;
+            color:#8a9bb8;
+            margin-top:0.3rem;
+        }
+        .setting-checkbox-row {
+            display:flex;
+            align-items:center;
+            gap:0.6rem;
+            padding-top:0.4rem;
+            border-top:1px solid #e9edf4;
+            margin-top:0.4rem;
+        }
+        .setting-checkbox-row input {
+            width:18px;
+            height:18px;
+            accent-color:#0A1F44;
+        }
+        .setting-checkbox-row label {
+            font-size:0.95rem;
+            color:#0A1F44;
+            font-weight:500;
+            cursor:pointer;
+        }
+        .saved-note {
+            font-size:0.8rem;
+            color:#8a9bb8;
+            margin:1.2rem 0 1.4rem;
+            border-top:1px solid #e9edf4;
+            padding-top:1rem;
+        }
+        .btn-done {
+            width:100%;
+            background:#0A1F44;
+            border:none;
+            color:#ffffff;
+            padding:0.9rem;
+            border-radius:100px;
+            font-size:1.05rem;
+            font-weight:700;
+            cursor:pointer;
+            transition:0.2s;
+            font-family:'Noto Sans',sans-serif;
+        }
+        .btn-done:hover { background:#132a5c; }
+
+        @media (max-width:600px) {
+            body { padding:0.75rem; align-items:flex-start; }
+            .container { max-height:85vh; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- HEADER: logo above heading -->
+    <div class="header">
+        <img class="logo-img" src="https://langrushi.com/wp-content/uploads/2024/09/langrushi_half.png" alt="Langrushi Logo" />
+        <h1><span class="dark">OnThe</span><span class="accent-red">Spot</span></h1>
+    </div>
+    <div class="subhead">spin a topic · speak with clarity</div>
+
+    <!-- MODE PILLS -->
+    <div class="category-group" id="categoryGroup">
+        <button class="cat-btn active" data-cat="speech">Speech</button>
+        <button class="cat-btn" data-cat="research">Research</button>
+    </div>
+
+    <!-- TOPIC DISPLAY -->
+    <div class="topic-card" id="topicCard">
+        <div class="topic-text placeholder" id="topicDisplay">Press <strong>Spin</strong> to begin</div>
+    </div>
+
+    <!-- CIRCULAR COUNTDOWN (replaces pills + topic card while running) -->
+    <div class="countdown-wrap" id="countdownWrap">
+        <div class="countdown-mode-label" id="countdownModeLabel">Speech</div>
+        <div class="countdown-topic" id="countdownTopic"></div>
+        <div class="circle-timer">
+            <svg viewBox="0 0 220 220">
+                <circle class="circle-bg" cx="110" cy="110" r="100"></circle>
+                <circle class="circle-progress" id="circleProgress" cx="110" cy="110" r="100"></circle>
+            </svg>
+            <div class="circle-label" id="circleLabel">00:00</div>
+        </div>
+        <button class="btn-cancel" id="cancelCloseBtn">Cancel</button>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="action-group">
+        <button class="btn-primary" id="spinBtn">🎲 Spin</button>
+        <button class="btn-secondary" id="startTimerBtn">▶ Start</button>
+        <button class="btn-icon" id="settingsBtn" title="Settings" aria-label="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <div class="footer-note">
+        Spin a thoughtful topic and speak with
+        <a href="http://draft.langrushi.com/" target="_blank">Langrushi</a>
+        · <a href="https://www.instagram.com/langrushi/" target="_blank" rel="noopener">@langrushi</a>
+    </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+        <h2>Settings</h2>
+        <div class="modal-sub">Timer length in whole minutes.</div>
+
+        <div class="setting-row">
+            <div class="setting-row-top">
+                <span class="setting-label">Speech</span>
+                <span class="setting-value" id="speechValueLabel">1 min</span>
+            </div>
+            <input type="range" id="speechRange" min="1" max="10" step="1" value="1" />
+            <div class="range-minmax"><span>1 min</span><span>10 min</span></div>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-row-top">
+                <span class="setting-label">Research</span>
+                <span class="setting-value" id="researchValueLabel">10 min</span>
+            </div>
+            <input type="range" id="researchRange" min="1" max="60" step="1" value="10" />
+            <div class="range-minmax"><span>1 min</span><span>60 min</span></div>
+            <div class="setting-helper">Deep research only</div>
+        </div>
+
+        <div class="setting-checkbox-row">
+            <input type="checkbox" id="muteCheckbox" />
+            <label for="muteCheckbox">Mute sound effects</label>
+        </div>
+
+        <div class="saved-note">Saved for next time.</div>
+
+        <button class="btn-done" id="doneBtn">Done</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // ----- TOPIC DATABASE -----
+    const topicsDB = {
+        speech: [
+            "What is the most important invention of the last 100 years?",
+            "If you could travel to any point in time, where would you go?",
+            "Describe your ideal day from sunrise to sunset.",
+            "What's a skill you think everyone should learn?",
+            "What does 'success' mean to you?",
+            "If you could only eat one cuisine for the rest of your life, what would it be?",
+            "What's the best piece of advice you've ever received?",
+            "Should art be judged objectively or subjectively?",
+            "What would you do if you had a free year to study anything?",
+            "Is it better to be a generalist or a specialist?",
+            "Should schools teach personal finance as a mandatory subject?",
+            "Is remote work a permanent shift or a passing trend?",
+            "What's one movie everyone should watch at least once?",
+            "Do social media algorithms help or harm society?",
+            "Should voting be mandatory for all citizens?",
+            "Is it better to live in a big city or a small town?",
+            "What's your go-to way to handle stress?",
+            "Is it more important to be liked or respected?",
+            "Should companies prioritize profit or purpose?",
+            "What's the biggest challenge facing your generation?",
+        ],
+        research: [
+            "What does 'freedom' truly mean in a modern context?",
+            "Is technology bringing us closer together or driving us apart?",
+            "What makes a leader truly effective?",
+            "Can objective morality exist without religion?",
+            "Is happiness a choice or a circumstance?",
+            "What is the value of suffering in human development?",
+            "Should we prioritize the needs of the many or the rights of the few?",
+            "What defines a 'good life' in the 21st century?",
+            "Is humanity fundamentally good or flawed?",
+            "How will artificial intelligence redefine human purpose?",
+        ]
+    };
+
+    // ----- SETTINGS (persisted) -----
+    const SETTINGS_KEY = 'unprompted_settings_v1';
+    function loadSettings() {
+        try {
+            const raw = localStorage.getItem(SETTINGS_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch(_) {}
+        return { speechMin: 1, researchMin: 10, mute: false };
+    }
+    function saveSettings() {
+        try {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        } catch(_) {}
+    }
+    let settings = loadSettings();
+
+    // ----- DOM REFS -----
+    const categoryBtns = document.querySelectorAll('.cat-btn');
+    const topicDisplay = document.getElementById('topicDisplay');
+    const topicCard = document.getElementById('topicCard');
+    const categoryGroup = document.getElementById('categoryGroup');
+    const spinBtn = document.getElementById('spinBtn');
+    const startTimerBtn = document.getElementById('startTimerBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const actionGroup = document.querySelector('.action-group');
+
+    const countdownWrap = document.getElementById('countdownWrap');
+    const countdownModeLabel = document.getElementById('countdownModeLabel');
+    const countdownTopic = document.getElementById('countdownTopic');
+    const circleProgress = document.getElementById('circleProgress');
+    const circleLabel = document.getElementById('circleLabel');
+    const cancelCloseBtn = document.getElementById('cancelCloseBtn');
+
+    const modalOverlay = document.getElementById('modalOverlay');
+    const speechRange = document.getElementById('speechRange');
+    const researchRange = document.getElementById('researchRange');
+    const speechValueLabel = document.getElementById('speechValueLabel');
+    const researchValueLabel = document.getElementById('researchValueLabel');
+    const muteCheckbox = document.getElementById('muteCheckbox');
+    const doneBtn = document.getElementById('doneBtn');
+
+    // ----- STATE -----
+    let currentMode = 'speech';
+    let currentTopics = topicsDB.speech;
+
+    let timerInterval = null;
+    let isTimerRunning = false;
+    let totalSeconds = 60;
+    let remainingSeconds = 60;
+    let isFinished = false;
+
+    let spinTimer = null;
+    let isSpinning = false;
+    let audioCtx = null;
+
+    // ----- CIRCLE MATH -----
+    const RADIUS = 100;
+    const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+    circleProgress.style.strokeDasharray = `${CIRCUMFERENCE}`;
+    circleProgress.style.strokeDashoffset = `0`;
+
+    // ----- AUDIO -----
+    function getAudioContext() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx;
+    }
+    function playAggressiveTick() {
+        if (settings.mute) return;
+        try {
+            const ctx = getAudioContext();
+            if (ctx.state === 'suspended') ctx.resume();
+            const now = ctx.currentTime;
+
+            const bufferSize = ctx.sampleRate * 0.025;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.6;
+            const noise = ctx.createBufferSource();
+            noise.buffer = buffer;
+            const gainN = ctx.createGain();
+            gainN.gain.setValueAtTime(0.25, now);
+            gainN.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+            noise.connect(gainN); gainN.connect(ctx.destination);
+            noise.start(now); noise.stop(now + 0.025);
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.value = 1800 + Math.random() * 800;
+            osc.type = 'square';
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
+            osc.start(now); osc.stop(now + 0.015);
+
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.connect(gain2); gain2.connect(ctx.destination);
+            osc2.frequency.value = 120 + Math.random() * 80;
+            osc2.type = 'sawtooth';
+            gain2.gain.setValueAtTime(0.10, now);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.030);
+            osc2.start(now); osc2.stop(now + 0.030);
+        } catch(_) {}
+    }
+    function playAggressiveFinish() {
+        if (settings.mute) return;
+        try {
+            const ctx = getAudioContext();
+            if (ctx.state === 'suspended') ctx.resume();
+            const now = ctx.currentTime;
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.value = 1400;
+            osc.type = 'sawtooth';
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+            osc.start(now); osc.stop(now + 0.25);
+
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.connect(gain2); gain2.connect(ctx.destination);
+            osc2.frequency.value = 2200;
+            osc2.type = 'square';
+            gain2.gain.setValueAtTime(0.10, now + 0.02);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.20);
+            osc2.start(now + 0.02); osc2.stop(now + 0.20);
+
+            const bufferSize = ctx.sampleRate * 0.06;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+            const noise = ctx.createBufferSource();
+            noise.buffer = buffer;
+            const gainN = ctx.createGain();
+            gainN.gain.setValueAtTime(0.20, now);
+            gainN.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+            noise.connect(gainN); gainN.connect(ctx.destination);
+            noise.start(now); noise.stop(now + 0.06);
+        } catch(_) {}
+    }
+
+    // ----- HELPERS -----
+    function formatTime(sec) {
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function getDurationForMode(mode) {
+        const mins = mode === 'research' ? settings.researchMin : settings.speechMin;
+        return mins * 60;
+    }
+
+    function lerpColor(hexA, hexB, t) {
+        const a = [parseInt(hexA.slice(1,3),16), parseInt(hexA.slice(3,5),16), parseInt(hexA.slice(5,7),16)];
+        const b = [parseInt(hexB.slice(1,3),16), parseInt(hexB.slice(3,5),16), parseInt(hexB.slice(5,7),16)];
+        const r = Math.round(a[0] + (b[0]-a[0])*t);
+        const g = Math.round(a[1] + (b[1]-a[1])*t);
+        const bl = Math.round(a[2] + (b[2]-a[2])*t);
+        return `rgb(${r},${g},${bl})`;
+    }
+
+    function updateCircle() {
+        circleLabel.textContent = formatTime(remainingSeconds);
+        const progressFraction = totalSeconds > 0 ? (remainingSeconds / totalSeconds) : 0;
+        const offset = CIRCUMFERENCE * (1 - progressFraction);
+        circleProgress.style.strokeDashoffset = `${offset}`;
+
+        // gradually shift stroke from black (#0A1F44) to red (#FF0000) as time depletes
+        const elapsedFraction = 1 - progressFraction;
+        circleProgress.style.stroke = lerpColor('#0A1F44', '#FF0000', elapsedFraction);
+
+        circleLabel.classList.remove('blink-urgent');
+        if (remainingSeconds <= 5 && remainingSeconds > 0) {
+            circleLabel.classList.add('blink-urgent');
+        }
+    }
+
+    function stopInterval() {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        isTimerRunning = false;
+    }
+
+    // ----- MODE SWITCH -----
+    function setMode(mode) {
+        if (spinTimer) {
+            clearTimeout(spinTimer);
+            spinTimer = null;
+            isSpinning = false;
+            topicCard.classList.remove('spinning-active');
+            topicDisplay.classList.remove('spinning-active');
+        }
+        currentMode = mode;
+        currentTopics = topicsDB[mode] || topicsDB.speech;
+        categoryBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.cat === mode));
+        topicDisplay.textContent = `Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)} — press Spin`;
+        topicDisplay.className = 'topic-text placeholder';
+    }
+
+    // ----- SPIN TOPIC -----
+    function spinTopic() {
+        const ctx = getAudioContext();
+        if (ctx.state === 'suspended') ctx.resume();
+
+        if (spinTimer) {
+            clearTimeout(spinTimer);
+            spinTimer = null;
+            isSpinning = false;
+            topicCard.classList.remove('spinning-active');
+            topicDisplay.classList.remove('spinning-active');
+        }
+
+        if (!currentTopics || currentTopics.length === 0) {
+            topicDisplay.textContent = 'No topics found. Add some!';
+            topicDisplay.className = 'topic-text';
+            return;
+        }
+
+        isSpinning = true;
+        const totalTicks = 24 + Math.floor(Math.random() * 18);
+        let currentTick = 0;
+        const startDelay = 30;
+        const endDelay = 280;
+
+        function tick() {
+            if (currentTick >= totalTicks) {
+                isSpinning = false;
+                topicCard.classList.remove('spinning-active');
+                topicDisplay.classList.remove('spinning-active');
+                const finalIdx = Math.floor(Math.random() * currentTopics.length);
+                topicDisplay.textContent = currentTopics[finalIdx];
+                topicDisplay.className = 'topic-text final-reveal';
+                setTimeout(() => topicDisplay.classList.remove('final-reveal'), 300);
+                playAggressiveFinish();
+                spinTimer = null;
+                return;
+            }
+            const randomIdx = Math.floor(Math.random() * currentTopics.length);
+            topicDisplay.textContent = currentTopics[randomIdx];
+            topicDisplay.className = 'topic-text spinning-active';
+            topicCard.classList.add('spinning-active');
+            playAggressiveTick();
+
+            currentTick++;
+            const progress = currentTick / totalTicks;
+            const delay = startDelay + (endDelay - startDelay) * (progress * progress);
+            spinTimer = setTimeout(tick, delay);
+        }
+        tick();
+    }
+
+    // ----- COUNTDOWN START -----
+    function startCountdown() {
+        totalSeconds = getDurationForMode(currentMode);
+        remainingSeconds = totalSeconds;
+        isFinished = false;
+
+        // hide pills + topic card + action buttons, show countdown
+        categoryGroup.classList.add('hidden-block');
+        topicCard.classList.add('hidden-block');
+        actionGroup.classList.add('hidden-block');
+        countdownWrap.classList.add('active');
+        countdownModeLabel.textContent = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+        countdownTopic.textContent = topicDisplay.classList.contains('placeholder') ? '' : topicDisplay.textContent;
+        cancelCloseBtn.textContent = 'Cancel';
+        cancelCloseBtn.classList.remove('close-state');
+
+        updateCircle();
+        stopInterval();
+        isTimerRunning = true;
+        timerInterval = setInterval(() => {
+            remainingSeconds -= 1;
+            if (remainingSeconds <= 0) {
+                remainingSeconds = 0;
+                updateCircle();
+                stopInterval();
+                isFinished = true;
+                cancelCloseBtn.textContent = 'Close';
+                cancelCloseBtn.classList.add('close-state');
+                playAggressiveFinish();
+                return;
+            }
+            updateCircle();
+        }, 1000);
+    }
+
+    function exitCountdown() {
+        stopInterval();
+        countdownWrap.classList.remove('active');
+        categoryGroup.classList.remove('hidden-block');
+        topicCard.classList.remove('hidden-block');
+        actionGroup.classList.remove('hidden-block');
+        isFinished = false;
+    }
+
+    // ----- SETTINGS MODAL -----
+    function openSettings() {
+        speechRange.value = settings.speechMin;
+        researchRange.value = settings.researchMin;
+        speechValueLabel.textContent = `${settings.speechMin} min`;
+        researchValueLabel.textContent = `${settings.researchMin} min`;
+        muteCheckbox.checked = !!settings.mute;
+        modalOverlay.classList.add('open');
+    }
+    function closeSettings() {
+        modalOverlay.classList.remove('open');
+    }
+
+    speechRange.addEventListener('input', () => {
+        settings.speechMin = parseInt(speechRange.value, 10);
+        speechValueLabel.textContent = `${settings.speechMin} min`;
+    });
+    researchRange.addEventListener('input', () => {
+        settings.researchMin = parseInt(researchRange.value, 10);
+        researchValueLabel.textContent = `${settings.researchMin} min`;
+    });
+    muteCheckbox.addEventListener('change', () => {
+        settings.mute = muteCheckbox.checked;
+    });
+    doneBtn.addEventListener('click', () => {
+        saveSettings();
+        closeSettings();
+    });
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) { saveSettings(); closeSettings(); }
+    });
+
+    // ----- EVENT LISTENERS -----
+    categoryBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            setMode(this.dataset.cat);
+        });
+    });
+
+    spinBtn.addEventListener('click', spinTopic);
+    startTimerBtn.addEventListener('click', startCountdown);
+    settingsBtn.addEventListener('click', openSettings);
+
+    cancelCloseBtn.addEventListener('click', function() {
+        exitCountdown();
+    });
+
+    // ----- INIT -----
+    function init() {
+        setMode('speech');
+    }
+    init();
+
+})();
+</script>
+</body>
+</html>
